@@ -2,17 +2,18 @@ package com.example.cryptopicker.model.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
 import java.math.BigDecimal;
 
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class CryptoPriceDTO {
-    @JsonProperty("id")
-    private String id;
+    private String id;  // Keep it as 'id' since that's what the API returns
 
-    @JsonProperty("symbol")
     private String symbol;
 
-    @JsonProperty("name")
     private String name;
 
     @JsonProperty("current_price")
@@ -20,17 +21,4 @@ public class CryptoPriceDTO {
 
     @JsonProperty("market_cap")
     private BigDecimal marketCap;
-
-    // Add no-args constructor
-    public CryptoPriceDTO() {}
-
-    // Optional: Add all-args constructor
-    public CryptoPriceDTO(String id, String symbol, String name, 
-                           BigDecimal currentPrice, BigDecimal marketCap) {
-        this.id = id;
-        this.symbol = symbol;
-        this.name = name;
-        this.currentPrice = currentPrice;
-        this.marketCap = marketCap;
-    }
 }
