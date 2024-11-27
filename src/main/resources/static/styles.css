@@ -1,0 +1,9 @@
+.crypto-card {
+    border: 1px solid #ddd;
+    padding: 15px;
+    margin: 10px;
+    border-radius: 8px;
+}
+
+.price-up { color: green; }
+.price-down { color: red; }
