@@ -7,8 +7,6 @@ Crypto Picker is a cryptocurrency tracking application designed to provide users
 - Select and track major cryptocurrencies
 - Real-time cryptocurrency price tracking
 - Price movement alerts (account required)
-- Progressive Web App (PWA) with desktop/mobile shortcuts
-- Persistent user settings storage
 - Daily email market reports (account-based)
 
 ## Technology Stack
