@@ -41,9 +41,10 @@ public class SecurityConfig {
                     "/api/crypto/top-three",
                     "/",
                     "/index.html",
+                    "/api/crypto/available",  
                     "/login.html",
                     "/register.html",
-                    "/dashboard.html",  // Added this line
+                    "/dashboard.html",
                     "/css/**",
                     "/js/**",
                     "/images/**"
