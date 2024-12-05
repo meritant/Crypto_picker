@@ -184,27 +184,22 @@
         }
 
         function displayCryptos(cryptos) {
-    // Sort cryptos by market cap (descending order)
-    const sortedCryptos = [...cryptos].sort((a, b) => {
-        return b.market_cap - a.market_cap;
-    });
-
-    const container = document.getElementById('cryptoGrid');
-    container.innerHTML = sortedCryptos.map(crypto => `
-        <div class="bg-white rounded-lg shadow p-4 sm:p-6 hover:shadow-lg transition-shadow">
-            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 space-y-1 sm:space-y-0">
-                <h3 class="text-lg sm:text-xl font-semibold">${crypto.symbol.toUpperCase()}</h3>
-                <span class="text-sm sm:text-base text-gray-500">${crypto.name}</span>
-            </div>
-            <div class="text-xl sm:text-2xl font-bold text-green-600">
-                $${formatNumber(crypto.current_price)}
-            </div>
-            <div class="text-xs sm:text-sm text-gray-500 mt-2">
-                Market Cap: $${formatNumber(crypto.market_cap)}
-            </div>
-        </div>
-    `).join('');
-}
+            const container = document.getElementById('cryptoGrid');
+            container.innerHTML = cryptos.map(crypto => `
+                <div class="bg-white rounded-lg shadow p-6 hover:shadow-lg transition-shadow">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-xl font-semibold">${crypto.symbol.toUpperCase()}</h3>
+                        <span class="text-gray-500">${crypto.name}</span>
+                    </div>
+                    <div class="text-2xl font-bold text-green-600">
+                        $${formatNumber(crypto.current_price)}
+                    </div>
+                    <div class="text-sm text-gray-500 mt-2">
+                        Market Cap: $${formatNumber(crypto.market_cap)}
+                    </div>
+                </div>
+            `).join('');
+        }
 
         async function openCryptoSelector() {
             document.getElementById('cryptoModal').classList.remove('hidden');
@@ -229,27 +224,21 @@
         }
 
         function displayAvailableCryptos(cryptos) {
-    // Sort available cryptos by market cap
-    const sortedCryptos = [...cryptos].sort((a, b) => {
-        return b.market_cap - a.market_cap;
-    });
-
-    const container = document.getElementById('availableCryptos');
-    container.innerHTML = sortedCryptos.map(crypto => `
-        <div class="flex items-center p-2 hover:bg-gray-100 rounded">
-            <input type="checkbox" 
-                   id="crypto-${crypto.symbol.toLowerCase()}" 
-                   value="${crypto.symbol.toLowerCase()}"
-                   ${selectedCryptos.has(crypto.symbol.toLowerCase()) ? 'checked' : ''}
-                   onchange="toggleCrypto('${crypto.symbol.toLowerCase()}', '${crypto.name}')"
-                   class="mr-2 h-4 w-4">
-            <label for="crypto-${crypto.symbol.toLowerCase()}" 
-                   class="flex-grow cursor-pointer py-1">
-                ${crypto.name} (${crypto.symbol.toUpperCase()}) - Market Cap: $${formatNumber(crypto.market_cap)}
-            </label>
-        </div>
-    `).join('');
-}
+            const container = document.getElementById('availableCryptos');
+            container.innerHTML = cryptos.map(crypto => `
+                <div class="flex items-center p-2 hover:bg-gray-100 rounded">
+                    <input type="checkbox" 
+                           id="crypto-${crypto.symbol.toLowerCase()}" 
+                           value="${crypto.symbol.toLowerCase()}"
+                           ${selectedCryptos.has(crypto.symbol.toLowerCase()) ? 'checked' : ''}
+                           onchange="toggleCrypto('${crypto.symbol.toLowerCase()}', '${crypto.name}')"
+                           class="mr-2">
+                    <label for="crypto-${crypto.symbol.toLowerCase()}" class="flex-grow cursor-pointer">
+                        ${crypto.name} (${crypto.symbol.toUpperCase()})
+                    </label>
+                </div>
+            `).join('');
+        }
 
         function toggleCrypto(symbol, name) {
             if (selectedCryptos.has(symbol)) {

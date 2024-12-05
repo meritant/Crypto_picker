@@ -1,10 +1,10 @@
 package com.example.cryptopicker.model;
 
-import lombok.Data;
-import lombok.Builder;
-import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -25,7 +25,9 @@ public class User {
 
     private String password;
     private String name;
-    private String role;
+
+    @Enumerated(EnumType.STRING)
+    private UserRole role = UserRole.ROLE_USER;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<Alert> alerts = new ArrayList<>();
