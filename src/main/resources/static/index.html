@@ -1,11 +1,343 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Crypto Picker</title>
-    <link rel="stylesheet" href="styles.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crypto Picker - Track Your Cryptocurrencies</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
 </head>
-<body>
-    <div id="crypto-container"></div>
-    <script src="app.js"></script>
+<body class="flex flex-col min-h-screen bg-gray-50">
+    <!-- Header -->
+    <header class="bg-white shadow">
+        <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+            <div class="flex justify-between items-center">
+                <div class="flex items-center">
+                    <h1 class="text-2xl font-bold text-green-600">Crypto Picker</h1>
+                    <span id="userGreeting" class="ml-4 text-gray-600 hidden">Hello, <span id="userName"></span>!</span>
+                </div>
+                <div id="authButtons">
+                    <!-- Buttons will be injected here -->
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-grow">
+        <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+            <!-- Hero Section -->
+            <div id="heroSection" class="text-center mb-12">
+                <!-- Content will be injected here -->
+            </div>
+
+            <!-- Crypto Grid -->
+            <div class="grid md:grid-cols-3 gap-6 mb-12" id="cryptoGrid">
+                <!-- Crypto cards will be populated by JavaScript -->
+            </div>
+        </div>
+    </main>
+
+    <!-- Crypto Selector Modal -->
+    <div id="cryptoModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden overflow-y-auto h-full w-full" style="z-index: 50;">
+        <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white">
+            <div class="flex flex-col max-h-[70vh]">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-xl font-bold">Select Cryptocurrencies</h3>
+                    <button onclick="closeCryptoSelector()" class="text-gray-600 hover:text-gray-800">&times;</button>
+                </div>
+                <p class="text-sm text-gray-600 mb-4">Select up to 15 cryptocurrencies to display on your dashboard</p>
+                
+                <!-- Search Box -->
+                <input type="text" 
+                       id="cryptoSearch" 
+                       placeholder="Search cryptocurrencies..." 
+                       class="p-2 border rounded mb-4">
+                
+                <!-- Selected Cryptos -->
+                <div class="mb-4">
+                    <h4 class="font-semibold mb-2">Selected (<span id="selectedCount">0</span>/15):</h4>
+                    <div id="selectedCryptos" class="flex flex-wrap gap-2">
+                        <!-- Selected crypto tags will go here -->
+                    </div>
+                </div>
+
+                <!-- Available Cryptos -->
+                <div class="overflow-y-auto flex-grow">
+                    <div id="availableCryptos" class="space-y-2">
+                        <!-- Available cryptos will be listed here -->
+                    </div>
+                </div>
+
+                <div class="mt-4 text-right">
+                    <button onclick="saveCryptoSelection()" 
+                            class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">
+                        Save Selection
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white">
+        <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div class="grid md:grid-cols-3 gap-8">
+                <div>
+                    <h3 class="text-lg font-semibold mb-2">About Crypto Picker</h3>
+                    <p class="text-gray-400">Track cryptocurrency prices and set up custom alerts for your portfolio.</p>
+                </div>
+                <div>
+                    <h3 class="text-lg font-semibold mb-2">Quick Links</h3>
+                    <ul class="text-gray-400">
+                        <li><a href="#" class="hover:text-white">Terms of Service</a></li>
+                        <li><a href="#" class="hover:text-white">Privacy Policy</a></li>
+                        <li><a href="#" class="hover:text-white">Contact Us</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="text-lg font-semibold mb-2">Connect</h3>
+                    <p class="text-gray-400">Follow us for updates and news</p>
+                </div>
+            </div>
+            <div class="mt-8 pt-8 border-t border-gray-700 text-center text-gray-400">
+                <p>&copy; 2024 Crypto Picker. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        let selectedCryptos = new Set();
+        let availableCryptos = [];
+
+        document.addEventListener('DOMContentLoaded', async function() {
+            const token = localStorage.getItem('token');
+            const userEmail = localStorage.getItem('userEmail');
+            
+            if (token) {
+                setupAuthenticatedView(userEmail);
+                await loadUserCryptos();
+            } else {
+                setupUnauthenticatedView();
+                await fetchAndDisplayCryptos();
+            }
+        });
+
+        function setupAuthenticatedView(userEmail) {
+            document.getElementById('userGreeting').classList.remove('hidden');
+            document.getElementById('userName').textContent = userEmail;
+            
+            document.getElementById('authButtons').innerHTML = `
+                <button onclick="logout()" class="px-4 py-2 text-red-600 hover:text-red-800">Logout</button>
+            `;
+            
+            document.getElementById('heroSection').innerHTML = `
+                <button onclick="openCryptoSelector()" 
+                        class="inline-block px-6 py-3 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition-colors">
+                    Add or Edit my Crypto
+                </button>
+            `;
+        }
+
+        function setupUnauthenticatedView() {
+            document.getElementById('userGreeting').classList.add('hidden');
+            
+            document.getElementById('authButtons').innerHTML = `
+                <a href="/login.html" class="px-4 py-2 text-green-600 hover:text-green-800">Sign in</a>
+            `;
+            
+            document.getElementById('heroSection').innerHTML = `
+                <p class="text-xl text-gray-600 mb-6">
+                    Register and choose your own crypto list. Setup alerts and more.
+                </p>
+                <a href="/register.html" 
+                   class="inline-block px-6 py-3 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition-colors">
+                    Register Now
+                </a>
+            `;
+        }
+
+        async function loadUserCryptos() {
+            try {
+                const response = await fetch('/api/crypto/user-selection', {
+                    headers: {
+                        'Authorization': 'Bearer ' + localStorage.getItem('token')
+                    }
+                });
+                if (response.ok) {
+                    const cryptos = await response.json();
+                    displayCryptos(cryptos);
+                    selectedCryptos = new Set(cryptos.map(crypto => crypto.symbol.toLowerCase()));
+                }
+            } catch (error) {
+                console.error('Error loading user cryptos:', error);
+            }
+        }
+
+        async function fetchAndDisplayCryptos() {
+            try {
+                const response = await fetch('/api/crypto/top-three');
+                const cryptos = await response.json();
+                displayCryptos(cryptos);
+            } catch (error) {
+                console.error('Error fetching crypto data:', error);
+            }
+        }
+
+        function displayCryptos(cryptos) {
+    // Sort cryptos by market cap (descending order)
+    const sortedCryptos = [...cryptos].sort((a, b) => {
+        return b.market_cap - a.market_cap;
+    });
+
+    const container = document.getElementById('cryptoGrid');
+    container.innerHTML = sortedCryptos.map(crypto => `
+        <div class="bg-white rounded-lg shadow p-4 sm:p-6 hover:shadow-lg transition-shadow">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 space-y-1 sm:space-y-0">
+                <h3 class="text-lg sm:text-xl font-semibold">${crypto.symbol.toUpperCase()}</h3>
+                <span class="text-sm sm:text-base text-gray-500">${crypto.name}</span>
+            </div>
+            <div class="text-xl sm:text-2xl font-bold text-green-600">
+                $${formatNumber(crypto.current_price)}
+            </div>
+            <div class="text-xs sm:text-sm text-gray-500 mt-2">
+                Market Cap: $${formatNumber(crypto.market_cap)}
+            </div>
+        </div>
+    `).join('');
+}
+
+        async function openCryptoSelector() {
+            document.getElementById('cryptoModal').classList.remove('hidden');
+            await loadAvailableCryptos();
+        }
+
+        async function loadAvailableCryptos() {
+            try {
+                const response = await fetch('/api/crypto/available', {
+                    headers: {
+                        'Authorization': 'Bearer ' + localStorage.getItem('token')
+                    }
+                });
+                if (response.ok) {
+                    availableCryptos = await response.json();
+                    displayAvailableCryptos(availableCryptos);
+                    updateSelectedDisplay();
+                }
+            } catch (error) {
+                console.error('Error loading available cryptos:', error);
+            }
+        }
+
+        function displayAvailableCryptos(cryptos) {
+    // Sort available cryptos by market cap
+    const sortedCryptos = [...cryptos].sort((a, b) => {
+        return b.market_cap - a.market_cap;
+    });
+
+    const container = document.getElementById('availableCryptos');
+    container.innerHTML = sortedCryptos.map(crypto => `
+        <div class="flex items-center p-2 hover:bg-gray-100 rounded">
+            <input type="checkbox" 
+                   id="crypto-${crypto.symbol.toLowerCase()}" 
+                   value="${crypto.symbol.toLowerCase()}"
+                   ${selectedCryptos.has(crypto.symbol.toLowerCase()) ? 'checked' : ''}
+                   onchange="toggleCrypto('${crypto.symbol.toLowerCase()}', '${crypto.name}')"
+                   class="mr-2 h-4 w-4">
+            <label for="crypto-${crypto.symbol.toLowerCase()}" 
+                   class="flex-grow cursor-pointer py-1">
+                ${crypto.name} (${crypto.symbol.toUpperCase()}) - Market Cap: $${formatNumber(crypto.market_cap)}
+            </label>
+        </div>
+    `).join('');
+}
+
+        function toggleCrypto(symbol, name) {
+            if (selectedCryptos.has(symbol)) {
+                selectedCryptos.delete(symbol);
+            } else if (selectedCryptos.size < 15) {
+                selectedCryptos.add(symbol);
+            } else {
+                alert('You can select maximum 15 cryptocurrencies');
+                document.getElementById(`crypto-${symbol}`).checked = false;
+                return;
+            }
+            updateSelectedDisplay();
+        }
+
+        function updateSelectedDisplay() {
+            const container = document.getElementById('selectedCryptos');
+            const count = document.getElementById('selectedCount');
+            count.textContent = selectedCryptos.size;
+            
+            container.innerHTML = Array.from(selectedCryptos).map(symbol => {
+                const crypto = availableCryptos.find(c => c.symbol.toLowerCase() === symbol);
+                return crypto ? `
+                    <span class="inline-flex items-center px-2 py-1 bg-green-100 text-green-800 rounded">
+                        ${crypto.symbol.toUpperCase()}
+                        <button onclick="toggleCrypto('${symbol}')" class="ml-1 hover:text-red-600">&times;</button>
+                    </span>
+                ` : '';
+            }).join('');
+        }
+
+        async function saveCryptoSelection() {
+            try {
+                const response = await fetch('/api/crypto/user-selection', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': 'Bearer ' + localStorage.getItem('token'),
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(Array.from(selectedCryptos))
+                });
+                
+                if (response.ok) {
+                    closeCryptoSelector();
+                    await loadUserCryptos();
+                } else {
+                    const error = await response.json();
+                    alert(error.message || 'Failed to save your selection. Please try again.');
+                }
+            } catch (error) {
+                console.error('Error saving selection:', error);
+                alert('Failed to save your selection. Please try again.');
+            }
+        }
+
+        function closeCryptoSelector() {
+            document.getElementById('cryptoModal').classList.add('hidden');
+        }
+
+        function logout() {
+            fetch('/api/logout', {
+                method: 'POST',
+                headers: {
+                    'Authorization': 'Bearer ' + localStorage.getItem('token')
+                }
+            }).finally(() => {
+                localStorage.removeItem('token');
+                localStorage.removeItem('userEmail');
+                window.location.reload();
+            });
+        }
+
+        function formatNumber(num) {
+            if (num === null || num === undefined) return '0.00';
+            return new Intl.NumberFormat('en-US', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            }).format(num);
+        }
+
+        // Search functionality
+        document.getElementById('cryptoSearch').addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            const filtered = availableCryptos.filter(crypto => 
+                crypto.name.toLowerCase().includes(searchTerm) || 
+                crypto.symbol.toLowerCase().includes(searchTerm)
+            );
+            displayAvailableCryptos(filtered);
+        });
+    </script>
 </body>
 </html>
