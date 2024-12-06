@@ -216,6 +216,7 @@
                 });
                 if (response.ok) {
                     availableCryptos = await response.json();
+                    console.log('Available cryptos loaded:', availableCryptos.length);  // Check how many we got
                     displayAvailableCryptos(availableCryptos);
                     updateSelectedDisplay();
                 }
