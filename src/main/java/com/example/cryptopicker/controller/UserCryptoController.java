@@ -16,6 +16,7 @@ public class UserCryptoController {
 
     @GetMapping("/available")
     public List<CryptoPriceDTO> getAvailableCryptos() {
+    	
         return userCryptoService.getAvailableCryptos();
     }
 
