@@ -10,7 +10,7 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 @AllArgsConstructor
 public class CryptoPriceDTO {
-    private String id;  // Keep it as 'id' since that's what the API returns
+    private String id;
 
     private String symbol;
 

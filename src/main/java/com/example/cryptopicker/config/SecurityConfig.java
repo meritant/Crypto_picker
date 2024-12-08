@@ -50,6 +50,8 @@ public class SecurityConfig {
                     "/js/**",
                     "/images/**"
                 ).permitAll()
+                .requestMatchers("/api/email-preferences/**").authenticated()
+
                 .anyRequest().authenticated()
             )
             .authenticationProvider(authenticationProvider())

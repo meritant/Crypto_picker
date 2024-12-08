@@ -23,13 +23,7 @@ public class EmailPreference {
     private boolean dailyReportEnabled = false;
     
     private LocalTime reportTime = LocalTime.of(8, 0); // Default to 8:00 AM
-    
-    private boolean includeMarketCap = true;
-    private boolean includePriceChange = true;
-    private boolean includeVolume = false;
 
-    @Column(name = "report_format")
     @Enumerated(EnumType.STRING)
-    private ReportFormat reportFormat = ReportFormat.DETAILED;
+    private ReportFormat reportFormat = ReportFormat.SIMPLE;
 }
-

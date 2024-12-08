@@ -8,6 +8,7 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
 </head>
 <body class="flex flex-col min-h-screen bg-gray-50">
+    
     <!-- Header -->
     <header class="bg-white shadow">
         <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
@@ -16,15 +17,109 @@
                     <h1 class="text-2xl font-bold text-green-600">Crypto Picker</h1>
                     <span id="userGreeting" class="ml-4 text-gray-600 hidden">Hello, <span id="userName"></span>!</span>
                 </div>
-                <div id="authButtons">
-                    <!-- Buttons will be injected here -->
+                <div id="authButtons" class="flex items-center gap-4">
+            
+                    <button onclick="logout()" 
+                            class="px-4 py-2 text-red-600 hover:text-red-800 font-medium">
+                        Logout
+                    </button>
                 </div>
+                
             </div>
         </div>
     </header>
 
+    <!-- Email Alerts -->
+    <style>
+        .toggle-checkbox {
+            position: absolute;
+            top: 0;
+            left: 0;
+            transition: transform 0.3s ease-in-out;
+            border-color: #CBD5E0;
+        }
+    
+        .toggle-checkbox:checked {
+            transform: translateX(100%);
+            border-color: #68D391;
+        }
+    
+        .toggle-checkbox:checked + .toggle-label {
+            background-color: #48BB78;
+        }
+    
+        .toggle-label {
+            transition: background-color 0.2s ease-in;
+        }
+    </style>
+     <!-- Email Preferences Modal -->
+<div id="emailPrefsModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden" style="z-index: 50;">
+    <div class="relative top-10 mx-auto w-[95%] sm:w-[500px] bg-white rounded-lg shadow-xl">
+        <div class="p-6">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-xl font-bold">Daily Report Settings</h3>
+                <button onclick="closeEmailPrefs()" 
+                        class="text-gray-600 hover:text-gray-800 text-2xl px-2">&times;</button>
+            </div>
+
+            <form id="emailPrefsForm" class="space-y-6">
+
+                <!-- Enable/Disable with fixed toggle switch -->
+<div class="flex items-center justify-between">
+    <label class="font-medium">Enable Daily Report</label>
+    <div class="relative inline-block w-10 mr-2 align-middle select-none">
+        <input type="checkbox" 
+               id="enableReport" 
+               class="toggle-checkbox absolute block w-5 h-5 rounded-full bg-white border-2 appearance-none cursor-pointer"/>
+        <label for="enableReport" 
+               class="toggle-label block h-5 rounded-full bg-gray-300 cursor-pointer"></label>
+    </div>
+</div>
+
+                <!-- Report Time -->
+                <div>
+                    <label class="block font-medium mb-2">Daily Report Time :: Format HH:MM(AM/PM)</label>
+                    <input type="time" id="reportTime" class="w-full p-2 border rounded">
+                </div>
+
+                <!-- Report Format -->
+                <div>
+                    <label class="block font-medium mb-2">Report Format</label>
+                    <select id="reportFormat" class="w-full p-2 border rounded">
+                        <option value="SIMPLE">Simple - Just prices</option>
+                        <option value="DETAILED">Detailed - Prices and market caps</option>
+                    </select>
+                </div>
+
+                <!-- Buttons -->
+                <div class="flex flex-col gap-3 pt-6">
+                    <button type="submit" 
+                            class="w-full py-2 bg-green-600 text-white rounded hover:bg-green-700 font-medium">
+                        Save Settings
+                    </button>
+                    <button type="button" 
+                            onclick="sendTestReport()" 
+                            class="w-full py-2 bg-blue-600 text-white rounded hover:bg-blue-700 font-medium">
+                        Send Test Report Now
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+    <!-- Email Alerts END -->
+
     <!-- Main Content -->
-    <main class="flex-grow">
+     
+    <!-- Report settings -->
+    <button onclick="openEmailPrefs()" 
+    class="px-4 py-2 text-blue-600 hover:text-blue-800 font-medium">
+    Report Settings
+    </button>
+<!-- Report settings -->
+
+<main class="flex-grow">
         <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
             <!-- Hero Section -->
             <div id="heroSection" class="text-center mb-12">
@@ -111,6 +206,86 @@ style="z-index: 50;">
     </footer>
 
     <script>
+            // Email Alerts
+            function openEmailPrefs() {
+    document.getElementById('emailPrefsModal').classList.remove('hidden');
+    loadEmailPreferences();
+}
+
+function closeEmailPrefs() {
+    document.getElementById('emailPrefsModal').classList.add('hidden');
+}
+
+async function loadEmailPreferences() {
+    try {
+        const response = await fetch('/api/email-preferences', {
+            headers: {
+                'Authorization': 'Bearer ' + localStorage.getItem('token')
+            }
+        });
+        if (response.ok) {
+            const prefs = await response.json();
+            document.getElementById('enableReport').checked = prefs.dailyReportEnabled;
+            document.getElementById('reportTime').value = prefs.reportTime;
+            document.getElementById('reportFormat').value = prefs.reportFormat;
+        }
+    } catch (error) {
+        console.error('Error loading email preferences:', error);
+    }
+}
+
+async function sendTestReport() {
+    try {
+        const response = await fetch('/api/email-preferences/test', {
+            method: 'POST',
+            headers: {
+                'Authorization': 'Bearer ' + localStorage.getItem('token')
+            }
+        });
+        if (response.ok) {
+            alert('Test report sent! Please check your email.');
+        } else {
+            alert('Failed to send test report. Please try again.');
+        }
+    } catch (error) {
+        console.error('Error sending test report:', error);
+        alert('Error sending test report');
+    }
+}
+
+document.getElementById('emailPrefsForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const data = {
+        dailyReportEnabled: document.getElementById('enableReport').checked,
+        reportTime: document.getElementById('reportTime').value,
+        reportFormat: document.getElementById('reportFormat').value
+    };
+
+    try {
+        const response = await fetch('/api/email-preferences', {
+            method: 'POST',
+            headers: {
+                'Authorization': 'Bearer ' + localStorage.getItem('token'),
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        });
+        
+        if (response.ok) {
+            alert('Email preferences saved successfully!');
+            closeEmailPrefs();
+        } else {
+            alert('Failed to save preferences. Please try again.');
+        }
+    } catch (error) {
+        console.error('Error saving email preferences:', error);
+        alert('Error saving preferences');
+    }
+});
+            // Email Alerts END
+
+
         let selectedCryptos = new Set();
         let availableCryptos = [];
 
@@ -131,9 +306,6 @@ style="z-index: 50;">
             document.getElementById('userGreeting').classList.remove('hidden');
             document.getElementById('userName').textContent = userEmail;
             
-            document.getElementById('authButtons').innerHTML = `
-                <button onclick="logout()" class="px-4 py-2 text-red-600 hover:text-red-800">Logout</button>
-            `;
             
             document.getElementById('heroSection').innerHTML = `
                 <button onclick="openCryptoSelector()" 
