@@ -420,40 +420,84 @@ function displayCryptos(cryptos) {
             await loadAvailableCryptos();
         }
 
+        // async function loadAvailableCryptos() {
+        //     try {
+        //         const response = await fetch('/api/crypto/available', {
+        //             headers: {
+        //                 'Authorization': 'Bearer ' + localStorage.getItem('token')
+        //             }
+        //         });
+        //         if (response.ok) {
+        //             availableCryptos = await response.json();
+        //             console.log('Available cryptos loaded:', availableCryptos.length);  // Check how many we got
+        //             displayAvailableCryptos(availableCryptos);
+        //             updateSelectedDisplay();
+        //         }
+        //     } catch (error) {
+        //         console.error('Error loading available cryptos:', error);
+        //     }
+        // }
+
+
         async function loadAvailableCryptos() {
-            try {
-                const response = await fetch('/api/crypto/available', {
-                    headers: {
-                        'Authorization': 'Bearer ' + localStorage.getItem('token')
-                    }
-                });
-                if (response.ok) {
-                    availableCryptos = await response.json();
-                    console.log('Available cryptos loaded:', availableCryptos.length);  // Check how many we got
-                    displayAvailableCryptos(availableCryptos);
-                    updateSelectedDisplay();
-                }
-            } catch (error) {
-                console.error('Error loading available cryptos:', error);
+    try {
+        const response = await fetch('/api/crypto/available', {
+            headers: {
+                'Authorization': 'Bearer ' + localStorage.getItem('token')
             }
+        });
+        if (response.ok) {
+            availableCryptos = await response.json();
+            displayAvailableCryptos(availableCryptos);
+            updateSelectedDisplay();
         }
+    } catch (error) {
+        console.error('Error loading available cryptos:', error);
+    }
+}
+
+
+
+
+
+        // function displayAvailableCryptos(cryptos) {
+        //     const container = document.getElementById('availableCryptos');
+        //     container.innerHTML = cryptos.map(crypto => `
+        //         <div class="flex items-center p-2 hover:bg-gray-100 rounded">
+        //             <input type="checkbox" 
+        //                    id="crypto-${crypto.symbol.toLowerCase()}" 
+        //                    value="${crypto.symbol.toLowerCase()}"
+        //                    ${selectedCryptos.has(crypto.symbol.toLowerCase()) ? 'checked' : ''}
+        //                    onchange="toggleCrypto('${crypto.symbol.toLowerCase()}', '${crypto.name}')"
+        //                    class="mr-2">
+        //             <label for="crypto-${crypto.symbol.toLowerCase()}" class="flex-grow cursor-pointer">
+        //                 ${crypto.name} (${crypto.symbol.toUpperCase()})
+        //             </label>
+        //         </div>
+        //     `).join('');
+        // }
+
 
         function displayAvailableCryptos(cryptos) {
-            const container = document.getElementById('availableCryptos');
-            container.innerHTML = cryptos.map(crypto => `
-                <div class="flex items-center p-2 hover:bg-gray-100 rounded">
-                    <input type="checkbox" 
-                           id="crypto-${crypto.symbol.toLowerCase()}" 
-                           value="${crypto.symbol.toLowerCase()}"
-                           ${selectedCryptos.has(crypto.symbol.toLowerCase()) ? 'checked' : ''}
-                           onchange="toggleCrypto('${crypto.symbol.toLowerCase()}', '${crypto.name}')"
-                           class="mr-2">
-                    <label for="crypto-${crypto.symbol.toLowerCase()}" class="flex-grow cursor-pointer">
-                        ${crypto.name} (${crypto.symbol.toUpperCase()})
-                    </label>
-                </div>
-            `).join('');
-        }
+    const container = document.getElementById('availableCryptos');
+    const cryptoArray = Array.isArray(cryptos) ? cryptos : [cryptos];
+
+    container.innerHTML = cryptoArray.map(crypto => `
+        <div class="flex items-center p-2 hover:bg-gray-100 rounded">
+            <input type="checkbox" 
+                   id="crypto-${crypto.symbol.toLowerCase()}" 
+                   value="${crypto.symbol.toLowerCase()}"
+                   ${selectedCryptos.has(crypto.symbol.toLowerCase()) ? 'checked' : ''}
+                   onchange="toggleCrypto('${crypto.symbol.toLowerCase()}', '${crypto.name}')"
+                   class="mr-2">
+            <label for="crypto-${crypto.symbol.toLowerCase()}" class="flex-grow cursor-pointer">
+                ${crypto.name} (${crypto.symbol.toUpperCase()}) - $${formatNumber(crypto.currentPrice)}
+            </label>
+        </div>
+    `).join('');
+}
+
+
 
         function toggleCrypto(symbol, name) {
             if (selectedCryptos.has(symbol)) {

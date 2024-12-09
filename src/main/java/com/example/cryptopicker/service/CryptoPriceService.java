@@ -7,6 +7,10 @@ import org.springframework.data.domain.PageRequest;
 import com.example.cryptopicker.model.dto.CryptoPriceDTO;
 import com.example.cryptopicker.model.Cryptocurrency;
 import com.example.cryptopicker.repository.CryptocurrencyRepository;
+
+import lombok.extern.slf4j.Slf4j;
+
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -16,6 +20,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @Service
+@Slf4j
 public class CryptoPriceService {
     private static final Logger logger = LoggerFactory.getLogger(CryptoPriceService.class);
     private static final Duration CACHE_DURATION = Duration.ofMinutes(5);
@@ -30,55 +35,120 @@ public class CryptoPriceService {
             .build();
     }
 
+//    public List<CryptoPriceDTO> fetchTopCryptoPrices(int limit) {
+//        // First, try to get from database
+//        List<Cryptocurrency> cachedData = cryptocurrencyRepository
+//            .findAllOrderByMarketCapDesc(PageRequest.of(0, limit));
+//        
+//        // If we have recent cached data, use it
+//        if (!cachedData.isEmpty() && isDataFresh(cachedData.get(0).getLastUpdated())) {
+//            logger.info("Returning cached data for top {} cryptocurrencies", limit);
+//            return cachedData.stream()
+//                .map(this::convertToDTO)
+//                .collect(Collectors.toList());
+//        }
+//
+//        // If no fresh cache, fetch from API
+//        try {
+//            logger.info("Fetching fresh data from CoinGecko API for top {} cryptocurrencies", limit);
+//            List<CryptoPriceDTO> prices = webClient.get()
+//                .uri(uriBuilder -> uriBuilder
+//                    .path("/coins/markets")
+//                    .queryParam("vs_currency", "usd")
+//                    .queryParam("order", "market_cap_desc")
+//                    .queryParam("per_page", limit)
+//                    .queryParam("page", 1)
+//                    .queryParam("sparkline", false)
+//                    .build())
+//                .retrieve()
+//                .bodyToFlux(CryptoPriceDTO.class)
+//                .collectList()
+//                .block();
+//            
+//            if (prices != null && !prices.isEmpty()) {
+//                saveToDatabase(prices);
+//            }
+//            
+//            return prices;
+//        } catch (WebClientResponseException e) {
+//            logger.error("API error: {} - {}", e.getStatusCode(), e.getResponseBodyAsString());
+//            
+//            // If API call fails but we have cached data (even if old), use it
+//            if (!cachedData.isEmpty()) {
+//                logger.info("API call failed, returning cached data");
+//                return cachedData.stream()
+//                    .map(this::convertToDTO)
+//                    .collect(Collectors.toList());
+//            }
+//            
+//            throw new RuntimeException("Failed to fetch crypto prices: " + e.getMessage());
+//        }
+//    }
+    
+    
     public List<CryptoPriceDTO> fetchTopCryptoPrices(int limit) {
-        // First, try to get from database
-        List<Cryptocurrency> cachedData = cryptocurrencyRepository
-            .findAllOrderByMarketCapDesc(PageRequest.of(0, limit));
-        
-        // If we have recent cached data, use it
-        if (!cachedData.isEmpty() && isDataFresh(cachedData.get(0).getLastUpdated())) {
-            logger.info("Returning cached data for top {} cryptocurrencies", limit);
-            return cachedData.stream()
-                .map(this::convertToDTO)
-                .collect(Collectors.toList());
-        }
+    	   List<Cryptocurrency> cachedData = cryptocurrencyRepository.findAllOrderByMarketCapDesc(PageRequest.of(0, limit));
 
-        // If no fresh cache, fetch from API
-        try {
-            logger.info("Fetching fresh data from CoinGecko API for top {} cryptocurrencies", limit);
-            List<CryptoPriceDTO> prices = webClient.get()
-                .uri(uriBuilder -> uriBuilder
-                    .path("/coins/markets")
-                    .queryParam("vs_currency", "usd")
-                    .queryParam("order", "market_cap_desc")
-                    .queryParam("per_page", limit)
-                    .queryParam("page", 1)
-                    .queryParam("sparkline", false)
-                    .build())
-                .retrieve()
-                .bodyToFlux(CryptoPriceDTO.class)
-                .collectList()
-                .block();
-            
-            if (prices != null && !prices.isEmpty()) {
-                saveToDatabase(prices);
-            }
-            
-            return prices;
-        } catch (WebClientResponseException e) {
-            logger.error("API error: {} - {}", e.getStatusCode(), e.getResponseBodyAsString());
-            
-            // If API call fails but we have cached data (even if old), use it
-            if (!cachedData.isEmpty()) {
-                logger.info("API call failed, returning cached data");
-                return cachedData.stream()
-                    .map(this::convertToDTO)
-                    .collect(Collectors.toList());
-            }
-            
-            throw new RuntimeException("Failed to fetch crypto prices: " + e.getMessage());
-        }
-    }
+    	   if (!cachedData.isEmpty() && isDataFresh(cachedData.get(0).getLastUpdated())) {
+    	       log.info("Returning cached data for top {} cryptocurrencies", limit);
+    	       return cachedData.stream()
+    	           .map(this::convertToDTO)
+    	           .collect(Collectors.toList());
+    	   }
+
+    	   try {
+    	       log.info("Fetching fresh data from CoinGecko API for top {} cryptocurrencies", limit);
+    	       
+    	       List<CryptoPriceDTO> allPrices = new ArrayList<>();
+    	       if (limit > 300) limit = 300; // Cap at 300
+
+    	       int pages = (limit + 99) / 100;
+    	       
+    	       for (int i = 1; i <= pages; i++) {
+    	           final int currentPage = i;
+    	           final int perPage = Math.min(100, limit - (currentPage - 1) * 100);
+    	           
+    	           List<CryptoPriceDTO> pagePrices = webClient.get()
+    	               .uri(uriBuilder -> uriBuilder
+    	                   .path("/coins/markets")
+    	                   .queryParam("vs_currency", "usd")
+    	                   .queryParam("order", "market_cap_desc")
+    	                   .queryParam("per_page", perPage)
+    	                   .queryParam("page", currentPage)
+    	                   .queryParam("sparkline", false)
+    	                   .build())
+    	               .retrieve()
+    	               .bodyToFlux(CryptoPriceDTO.class)
+    	               .collectList()
+    	               .block();
+
+    	           if (pagePrices != null && !pagePrices.isEmpty()) {
+    	               allPrices.addAll(pagePrices);
+    	           }
+    	       }
+
+    	       if (!allPrices.isEmpty()) {
+    	           saveToDatabase(allPrices);
+    	       }
+
+    	       return allPrices;
+    	   } catch (WebClientResponseException e) {
+    	       log.error("API error: {} - {}", e.getStatusCode(), e.getResponseBodyAsString());
+    	       
+    	       if (!cachedData.isEmpty()) {
+    	           log.info("API call failed, returning cached data");
+    	           return cachedData.stream()
+    	               .map(this::convertToDTO)
+    	               .collect(Collectors.toList());
+    	       }
+    	       
+    	       throw new RuntimeException("Failed to fetch crypto prices: " + e.getMessage());
+    	   }
+    	}
+    
+    
+    
+    
     
     // ... rest of the service methods remain the same ...
 
@@ -97,13 +167,22 @@ public class CryptoPriceService {
         return dto;
     }
 
+    
     private void saveToDatabase(List<CryptoPriceDTO> prices) {
-        List<Cryptocurrency> cryptoEntities = prices.stream()
-            .map(this::convertToEntity)
-            .collect(Collectors.toList());
-        
-        cryptocurrencyRepository.saveAll(cryptoEntities);
+        try {
+            List<Cryptocurrency> cryptoEntities = prices.stream()
+                .map(this::convertToEntity)
+                .collect(Collectors.toList());
+            
+            log.info("Saving {} cryptocurrencies to database", cryptoEntities.size());
+            cryptocurrencyRepository.saveAll(cryptoEntities);
+            log.info("Successfully saved cryptocurrencies");
+        } catch (Exception e) {
+            log.error("Error saving to database: ", e);
+            throw new RuntimeException("Failed to save cryptocurrencies", e);
+        }
     }
+    
     
     private Cryptocurrency convertToEntity(CryptoPriceDTO dto) {
         Cryptocurrency crypto = new Cryptocurrency();
