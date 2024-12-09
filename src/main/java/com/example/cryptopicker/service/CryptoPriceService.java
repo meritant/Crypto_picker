@@ -34,56 +34,6 @@ public class CryptoPriceService {
             .baseUrl("https://api.coingecko.com/api/v3")
             .build();
     }
-
-//    public List<CryptoPriceDTO> fetchTopCryptoPrices(int limit) {
-//        // First, try to get from database
-//        List<Cryptocurrency> cachedData = cryptocurrencyRepository
-//            .findAllOrderByMarketCapDesc(PageRequest.of(0, limit));
-//        
-//        // If we have recent cached data, use it
-//        if (!cachedData.isEmpty() && isDataFresh(cachedData.get(0).getLastUpdated())) {
-//            logger.info("Returning cached data for top {} cryptocurrencies", limit);
-//            return cachedData.stream()
-//                .map(this::convertToDTO)
-//                .collect(Collectors.toList());
-//        }
-//
-//        // If no fresh cache, fetch from API
-//        try {
-//            logger.info("Fetching fresh data from CoinGecko API for top {} cryptocurrencies", limit);
-//            List<CryptoPriceDTO> prices = webClient.get()
-//                .uri(uriBuilder -> uriBuilder
-//                    .path("/coins/markets")
-//                    .queryParam("vs_currency", "usd")
-//                    .queryParam("order", "market_cap_desc")
-//                    .queryParam("per_page", limit)
-//                    .queryParam("page", 1)
-//                    .queryParam("sparkline", false)
-//                    .build())
-//                .retrieve()
-//                .bodyToFlux(CryptoPriceDTO.class)
-//                .collectList()
-//                .block();
-//            
-//            if (prices != null && !prices.isEmpty()) {
-//                saveToDatabase(prices);
-//            }
-//            
-//            return prices;
-//        } catch (WebClientResponseException e) {
-//            logger.error("API error: {} - {}", e.getStatusCode(), e.getResponseBodyAsString());
-//            
-//            // If API call fails but we have cached data (even if old), use it
-//            if (!cachedData.isEmpty()) {
-//                logger.info("API call failed, returning cached data");
-//                return cachedData.stream()
-//                    .map(this::convertToDTO)
-//                    .collect(Collectors.toList());
-//            }
-//            
-//            throw new RuntimeException("Failed to fetch crypto prices: " + e.getMessage());
-//        }
-//    }
     
     
     public List<CryptoPriceDTO> fetchTopCryptoPrices(int limit) {
@@ -100,6 +50,7 @@ public class CryptoPriceService {
     	       log.info("Fetching fresh data from CoinGecko API for top {} cryptocurrencies", limit);
     	       
     	       List<CryptoPriceDTO> allPrices = new ArrayList<>();
+    	       
     	       if (limit > 300) limit = 300; // Cap at 300
 
     	       int pages = (limit + 99) / 100;
@@ -157,6 +108,21 @@ public class CryptoPriceService {
                Duration.between(lastUpdated, LocalDateTime.now()).compareTo(CACHE_DURATION) < 0;
     }
     
+    
+    
+    
+    
+//    private CryptoPriceDTO convertToDTO(Cryptocurrency entity) {
+//        CryptoPriceDTO dto = new CryptoPriceDTO();
+//        dto.setId(entity.getId());
+//        dto.setSymbol(entity.getSymbol());
+//        dto.setName(entity.getName());
+//        dto.setCurrentPrice(entity.getCurrentPrice());
+//        dto.setMarketCap(entity.getMarketCap());
+//        return dto;
+//    }
+    
+    
     private CryptoPriceDTO convertToDTO(Cryptocurrency entity) {
         CryptoPriceDTO dto = new CryptoPriceDTO();
         dto.setId(entity.getId());
@@ -164,8 +130,13 @@ public class CryptoPriceService {
         dto.setName(entity.getName());
         dto.setCurrentPrice(entity.getCurrentPrice());
         dto.setMarketCap(entity.getMarketCap());
+        dto.setPriceChangePercentage24h(entity.getPriceChangePercentage24h());
         return dto;
     }
+    
+    
+    
+    
 
     
     private void saveToDatabase(List<CryptoPriceDTO> prices) {
@@ -184,6 +155,19 @@ public class CryptoPriceService {
     }
     
     
+//    private Cryptocurrency convertToEntity(CryptoPriceDTO dto) {
+//        Cryptocurrency crypto = new Cryptocurrency();
+//        crypto.setId(dto.getId());
+//        crypto.setSymbol(dto.getSymbol());
+//        crypto.setName(dto.getName());
+//        crypto.setCurrentPrice(dto.getCurrentPrice());
+//        crypto.setMarketCap(dto.getMarketCap());
+//        crypto.setLastUpdated(LocalDateTime.now());
+//        return crypto;
+//    }
+    
+    
+    
     private Cryptocurrency convertToEntity(CryptoPriceDTO dto) {
         Cryptocurrency crypto = new Cryptocurrency();
         crypto.setId(dto.getId());
@@ -191,9 +175,13 @@ public class CryptoPriceService {
         crypto.setName(dto.getName());
         crypto.setCurrentPrice(dto.getCurrentPrice());
         crypto.setMarketCap(dto.getMarketCap());
+        crypto.setPriceChangePercentage24h(dto.getPriceChangePercentage24h());
         crypto.setLastUpdated(LocalDateTime.now());
         return crypto;
     }
+    
+    
+    
 
     public CryptoPriceDTO fetchPriceBySymbol(String symbol) {
         logger.info("Fetching price for symbol: {}", symbol);

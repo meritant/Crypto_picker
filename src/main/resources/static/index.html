@@ -491,7 +491,7 @@ function displayCryptos(cryptos) {
                    onchange="toggleCrypto('${crypto.symbol.toLowerCase()}', '${crypto.name}')"
                    class="mr-2">
             <label for="crypto-${crypto.symbol.toLowerCase()}" class="flex-grow cursor-pointer">
-                ${crypto.name} (${crypto.symbol.toUpperCase()}) - $${formatNumber(crypto.currentPrice)}
+                ${crypto.name} (${crypto.symbol.toUpperCase()})
             </label>
         </div>
     `).join('');

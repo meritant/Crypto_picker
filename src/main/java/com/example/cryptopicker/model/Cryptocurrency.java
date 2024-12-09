@@ -20,4 +20,7 @@ public class Cryptocurrency {
     private BigDecimal currentPrice;
     private BigDecimal marketCap;
     private LocalDateTime lastUpdated;
+    @Column(name = "price_change_percentage_24h")
+    private Double priceChangePercentage24h;
+    
 }

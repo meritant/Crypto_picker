@@ -21,4 +21,7 @@ public class CryptoPriceDTO {
 
     @JsonProperty("market_cap")
     private BigDecimal marketCap;
+    
+    @JsonProperty("price_change_percentage_24h")
+    private Double priceChangePercentage24h;
 }
