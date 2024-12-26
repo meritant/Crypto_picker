@@ -1,0 +1,20 @@
+.toggle-checkbox {
+            position: absolute;
+            top: 0;
+            left: 0;
+            transition: transform 0.3s ease-in-out;
+            border-color: #CBD5E0;
+        }
+    
+        .toggle-checkbox:checked {
+            transform: translateX(100%);
+            border-color: #68D391;
+        }
+    
+        .toggle-checkbox:checked + .toggle-label {
+            background-color: #48BB78;
+        }
+    
+        .toggle-label {
+            transition: background-color 0.2s ease-in;
+        }

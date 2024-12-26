@@ -102,30 +102,11 @@ public class CryptoPriceService {
     	   }
     	}
     
-    
-    
-    
-    
-    // ... rest of the service methods remain the same ...
 
     private boolean isDataFresh(LocalDateTime lastUpdated) {
         return lastUpdated != null && 
                Duration.between(lastUpdated, LocalDateTime.now()).compareTo(CACHE_DURATION) < 0;
     }
-    
-    
-    
-    
-    
-//    private CryptoPriceDTO convertToDTO(Cryptocurrency entity) {
-//        CryptoPriceDTO dto = new CryptoPriceDTO();
-//        dto.setId(entity.getId());
-//        dto.setSymbol(entity.getSymbol());
-//        dto.setName(entity.getName());
-//        dto.setCurrentPrice(entity.getCurrentPrice());
-//        dto.setMarketCap(entity.getMarketCap());
-//        return dto;
-//    }
     
     
     private CryptoPriceDTO convertToDTO(Cryptocurrency entity) {
@@ -138,9 +119,6 @@ public class CryptoPriceService {
         dto.setPriceChangePercentage24h(entity.getPriceChangePercentage24h());
         return dto;
     }
-    
-    
-    
     
 
     
@@ -158,19 +136,6 @@ public class CryptoPriceService {
             throw new RuntimeException("Failed to save cryptocurrencies", e);
         }
     }
-    
-    
-//    private Cryptocurrency convertToEntity(CryptoPriceDTO dto) {
-//        Cryptocurrency crypto = new Cryptocurrency();
-//        crypto.setId(dto.getId());
-//        crypto.setSymbol(dto.getSymbol());
-//        crypto.setName(dto.getName());
-//        crypto.setCurrentPrice(dto.getCurrentPrice());
-//        crypto.setMarketCap(dto.getMarketCap());
-//        crypto.setLastUpdated(LocalDateTime.now());
-//        return crypto;
-//    }
-    
     
     
     private Cryptocurrency convertToEntity(CryptoPriceDTO dto) {
