@@ -3,6 +3,7 @@ package com.example.cryptopicker.service;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.PageRequest;
 import com.example.cryptopicker.model.dto.CryptoPriceDTO;
 import com.example.cryptopicker.model.Cryptocurrency;
@@ -27,13 +28,17 @@ public class CryptoPriceService {
     
     private final WebClient webClient;
     private final CryptocurrencyRepository cryptocurrencyRepository;
+    private final String apiKey;
     
-    public CryptoPriceService(CryptocurrencyRepository cryptocurrencyRepository) {
-        this.cryptocurrencyRepository = cryptocurrencyRepository;
-        this.webClient = WebClient.builder()
-            .baseUrl("https://api.coingecko.com/api/v3")
-            .build();
-    }
+    public CryptoPriceService(CryptocurrencyRepository cryptocurrencyRepository, 
+            @Value("${coingecko.api.key}") String apiKey) {
+		this.cryptocurrencyRepository = cryptocurrencyRepository;
+		this.apiKey = apiKey;
+		this.webClient = WebClient.builder()
+		.baseUrl("https://api.coingecko.com/api/v3")
+		.defaultHeader("x-cg-demo-api-key", apiKey)  
+		.build();
+		}
     
     
     public List<CryptoPriceDTO> fetchTopCryptoPrices(int limit) {
