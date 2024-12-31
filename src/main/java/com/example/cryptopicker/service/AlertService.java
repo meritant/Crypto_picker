@@ -58,7 +58,7 @@ public class AlertService {
     public void checkAlerts() {
         List<Alert> activeAlerts = alertRepository.findByStatus(AlertStatus.ACTIVE);
         for (Alert alert : activeAlerts) {
-            CryptoPriceDTO currentPrice = cryptoPriceService.fetchPriceBySymbol(alert.getCryptoSymbol());
+            CryptoPriceDTO currentPrice = cryptoPriceService.fetchPriceById(alert.getCryptoSymbol());
             if (shouldTriggerAlert(alert, currentPrice.getCurrentPrice())) {
                 emailService.sendAlertEmail(alert.getUser().getEmail(), alert);
                 alert.setStatus(AlertStatus.TRIGGERED);

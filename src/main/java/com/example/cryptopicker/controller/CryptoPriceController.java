@@ -38,12 +38,12 @@ public class CryptoPriceController {
         }
     }
 
-    @GetMapping("/price/{symbol}")
-    public CryptoPriceDTO getCryptoPrice(@PathVariable String symbol) {
+    @GetMapping("/price/{id}")
+    public CryptoPriceDTO getCryptoPrice(@PathVariable String id) {
         try {
-            return cryptoPriceService.fetchPriceBySymbol(symbol);
+            return cryptoPriceService.fetchPriceById(id);
         } catch (Exception e) {
-            log.error("Error fetching price for symbol {}: ", symbol, e);
+            log.error("Error fetching price for ID {}: ", id, e);
             throw e;
         }
     }

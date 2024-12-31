@@ -135,7 +135,7 @@ document.getElementById('emailPrefsForm').addEventListener('submit', async funct
                 if (response.ok) {
                     const cryptos = await response.json();
                     displayCryptos(cryptos);
-                    selectedCryptos = new Set(cryptos.map(crypto => crypto.symbol.toLowerCase()));
+                    selectedCryptos = new Set(cryptos.map(crypto => crypto.id.toLowerCase()));
                 }
             } catch (error) {
                 console.error('Error loading user cryptos:', error);
@@ -163,9 +163,9 @@ function displayCryptos(cryptos) {
        
        return `
            <div class="bg-white rounded-lg shadow p-4 sm:p-6 transition-all duration-300 ${bgColorClass}"
-                data-symbol="${crypto.symbol}">
+                data-symbol="${crypto.id}">
                <div class="flex justify-between items-center mb-2">
-                   <h3 class="text-lg font-bold">${crypto.symbol.toUpperCase()}</h3>
+                   <h3 class="text-lg font-bold">${crypto.id.toUpperCase()}</h3>
                    <div class="text-sm text-gray-500">${crypto.name}</div>
                </div>
                <div class="flex justify-between items-center">
@@ -215,13 +215,13 @@ function displayCryptos(cryptos) {
     container.innerHTML = cryptoArray.map(crypto => `
         <div class="flex items-center p-2 hover:bg-gray-100 rounded">
             <input type="checkbox" 
-                   id="crypto-${crypto.symbol.toLowerCase()}" 
-                   value="${crypto.symbol.toLowerCase()}"
-                   ${selectedCryptos.has(crypto.symbol.toLowerCase()) ? 'checked' : ''}
-                   onchange="toggleCrypto('${crypto.symbol.toLowerCase()}', '${crypto.name}')"
+                   id="crypto-${crypto.id.toLowerCase()}" 
+                   value="${crypto.id.toLowerCase()}"
+                   ${selectedCryptos.has(crypto.id.toLowerCase()) ? 'checked' : ''}
+                   onchange="toggleCrypto('${crypto.id.toLowerCase()}', '${crypto.name}')"
                    class="mr-2">
-            <label for="crypto-${crypto.symbol.toLowerCase()}" class="flex-grow cursor-pointer">
-                ${crypto.name} (${crypto.symbol.toUpperCase()})
+            <label for="crypto-${crypto.id.toLowerCase()}" class="flex-grow cursor-pointer">
+                ${crypto.name} (${crypto.id.toUpperCase()})
             </label>
         </div>
     `).join('');
@@ -229,14 +229,14 @@ function displayCryptos(cryptos) {
 
 
 
-        function toggleCrypto(symbol, name) {
-            if (selectedCryptos.has(symbol)) {
-                selectedCryptos.delete(symbol);
+        function toggleCrypto(id, name) {
+            if (selectedCryptos.has(id)) {
+                selectedCryptos.delete(id);
             } else if (selectedCryptos.size < 15) {
-                selectedCryptos.add(symbol);
+                selectedCryptos.add(id);
             } else {
                 alert('You can select maximum 15 cryptocurrencies');
-                document.getElementById(`crypto-${symbol}`).checked = false;
+                document.getElementById(`crypto-${id}`).checked = false;
                 return;
             }
             updateSelectedDisplay();
@@ -247,12 +247,12 @@ function displayCryptos(cryptos) {
             const count = document.getElementById('selectedCount');
             count.textContent = selectedCryptos.size;
             
-            container.innerHTML = Array.from(selectedCryptos).map(symbol => {
-                const crypto = availableCryptos.find(c => c.symbol.toLowerCase() === symbol);
+            container.innerHTML = Array.from(selectedCryptos).map(id => {
+                const crypto = availableCryptos.find(c => c.id.toLowerCase() === id);
                 return crypto ? `
                     <span class="inline-flex items-center px-2 py-1 bg-green-100 text-green-800 rounded">
-                        ${crypto.symbol.toUpperCase()}
-                        <button onclick="toggleCrypto('${symbol}')" class="ml-1 hover:text-red-600">&times;</button>
+                        ${crypto.id.toUpperCase()}
+                        <button onclick="toggleCrypto('${id}')" class="ml-1 hover:text-red-600">&times;</button>
                     </span>
                 ` : '';
             }).join('');
@@ -312,7 +312,7 @@ function displayCryptos(cryptos) {
             const searchTerm = e.target.value.toLowerCase();
             const filtered = availableCryptos.filter(crypto => 
                 crypto.name.toLowerCase().includes(searchTerm) || 
-                crypto.symbol.toLowerCase().includes(searchTerm)
+                crypto.id.toLowerCase().includes(searchTerm)
             );
             displayAvailableCryptos(filtered);
         });

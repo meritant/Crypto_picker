@@ -14,4 +14,6 @@ public interface CryptocurrencyRepository extends JpaRepository<Cryptocurrency, 
     List<Cryptocurrency> findAllOrderByMarketCapDesc(Pageable pageable);
     
     Optional<Cryptocurrency> findBySymbolIgnoreCase(String symbol);
+
+	Optional<Cryptocurrency> findByIdIgnoreCase(String id);
 }

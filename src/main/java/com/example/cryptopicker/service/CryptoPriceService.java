@@ -153,26 +153,26 @@ public class CryptoPriceService {
     
     
 
-    public CryptoPriceDTO fetchPriceBySymbol(String symbol) {
-        logger.info("Fetching price for symbol: {}", symbol);
+    public CryptoPriceDTO fetchPriceById(String id) {
+        logger.info("Fetching price for ID: {}", id);
 
         // First check the database for cached data
-        Optional<Cryptocurrency> cachedCrypto = cryptocurrencyRepository.findBySymbolIgnoreCase(symbol);
+        Optional<Cryptocurrency> cachedCrypto = cryptocurrencyRepository.findByIdIgnoreCase(id);
         
         // If we have recent cached data, use it
         if (cachedCrypto.isPresent() && isDataFresh(cachedCrypto.get().getLastUpdated())) {
-            logger.info("Returning cached data for symbol: {}", symbol);
+            logger.info("Returning cached data for ID: {}", id);
             return convertToDTO(cachedCrypto.get());
         }
 
         // If no fresh cache, fetch from API
         try {
-            logger.info("Fetching fresh data from CoinGecko API for symbol: {}", symbol);
+            logger.info("Fetching fresh data from CoinGecko API for ID: {}", id);
             List<CryptoPriceDTO> prices = webClient.get()
                 .uri(uriBuilder -> uriBuilder
                     .path("/coins/markets")
                     .queryParam("vs_currency", "usd")
-                    .queryParam("ids", symbol.toLowerCase())
+                    .queryParam("ids", id.toLowerCase())
                     .queryParam("order", "market_cap_desc")
                     .queryParam("per_page", 1)
                     .queryParam("page", 1)
@@ -191,34 +191,34 @@ public class CryptoPriceService {
 
             // If API returns no data but we have cached data (even if old), use it
             if (cachedCrypto.isPresent()) {
-                logger.info("No API data available, returning cached data for symbol: {}", symbol);
+                logger.info("No API data available, returning cached data for ID: {}", id);
                 return convertToDTO(cachedCrypto.get());
             }
 
-            logger.error("No data found for symbol: {}", symbol);
-            throw new RuntimeException("Cryptocurrency not found: " + symbol);
+            logger.error("No data found for ID: {}", id);
+            throw new RuntimeException("Cryptocurrency not found: " + id);
 
         } catch (WebClientResponseException e) {
-            logger.error("API error for symbol {}: {} - {}", 
-                symbol, e.getStatusCode(), e.getResponseBodyAsString());
+            logger.error("API error for ID {}: {} - {}", 
+                id, e.getStatusCode(), e.getResponseBodyAsString());
             
             // If API call fails but we have cached data (even if old), use it
             if (cachedCrypto.isPresent()) {
-                logger.info("API call failed, returning cached data for symbol: {}", symbol);
+                logger.info("API call failed, returning cached data for ID: {}", id);
                 return convertToDTO(cachedCrypto.get());
             }
             
-            throw new RuntimeException("Failed to fetch price for " + symbol + ": " + e.getMessage());
+            throw new RuntimeException("Failed to fetch price for " + id + ": " + e.getMessage());
         } catch (Exception e) {
-            logger.error("Unexpected error fetching price for symbol: " + symbol, e);
+            logger.error("Unexpected error fetching price for id: " + id, e);
             
             // If any other error occurs but we have cached data, use it
             if (cachedCrypto.isPresent()) {
-                logger.info("Error occurred, returning cached data for symbol: {}", symbol);
+                logger.info("Error occurred, returning cached data for ID: {}", id);
                 return convertToDTO(cachedCrypto.get());
             }
             
-            throw new RuntimeException("Failed to fetch price for " + symbol, e);
+            throw new RuntimeException("Failed to fetch price for " + id, e);
         }
     }
 }

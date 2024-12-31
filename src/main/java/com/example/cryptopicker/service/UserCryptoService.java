@@ -39,7 +39,7 @@ public class UserCryptoService {
         }
 
         return selection.getCryptoIds().stream()
-            .map(cryptoPriceService::fetchPriceBySymbol)
+            .map(cryptoPriceService::fetchPriceById)
             .collect(Collectors.toList());
     }
 

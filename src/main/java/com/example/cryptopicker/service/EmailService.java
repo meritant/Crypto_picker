@@ -59,7 +59,7 @@ public class EmailService {
         }
 
         List<CryptoPriceDTO> selectedCryptos = selection.getCryptoIds().stream()
-            .map(cryptoPriceService::fetchPriceBySymbol)
+            .map(cryptoPriceService::fetchPriceById)
             .toList();
 
         String reportContent = prefs.getReportFormat() == ReportFormat.SIMPLE ? 
