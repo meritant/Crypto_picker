@@ -97,6 +97,7 @@ document.getElementById('emailPrefsForm').addEventListener('submit', async funct
         function setupAuthenticatedView(userEmail) {
             document.getElementById('userGreeting').classList.remove('hidden');
             document.getElementById('userName').textContent = userEmail;
+            document.getElementById('demo_acc').classList.add('hidden');
             
             
             document.getElementById('heroSection').innerHTML = `
