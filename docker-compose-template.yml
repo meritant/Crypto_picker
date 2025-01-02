@@ -1,0 +1,22 @@
+services:
+  app:
+    build: .
+    ports:
+      - "8080:8080" # first is outside : second is local port
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/appDB # add your DB name
+      - SPRING_DATASOURCE_USERNAME=postgres # DB username
+      - SPRING_DATASOURCE_PASSWORD=postgres # Db password
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+      - JWT_SECRET= # secret key, if used
+      - JWT_EXPIRATION=86400000
+      - COINGECKO_API_KEY= # API key, if used
+    depends_on:
+      - db
+
+  db:
+    image: postgres:16
+    environment:
+      - POSTGRES_DB=appDB # same your DB name
+      - POSTGRES_USER=postgres # same as for spring, must match
+      - POSTGRES_PASSWORD=postgres # same as for spring, must match
